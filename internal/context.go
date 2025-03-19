@@ -6,17 +6,17 @@ import (
 	"runtime"
 )
 
-type context struct {
+type claudeContext struct {
 	Os               string
 	Shell            string
 	CurrentDirectory string
 	Children         []string
 }
 
-func (c *context) toPrompt() (string, error) {
+func (c *claudeContext) toPrompt() (string, error) {
 	const prompt = `Respond with commands which are runnable according to the user request following the json schema in context block.
 
-FOLLOW THE SCHEMA IN CONTEXT BLOCK AND DO NOT ADD ANYTHING ELSE RETURN ONLY JSON.`
+FOLLOW THE SCHEMA IN CONTEXT BLOCK AND DO NOT ADD ANYTHING ELSE RETURN ONLY JSON. NO MARKUP OR ANYTHING ELSE. JUST JSON.`
 
 	const schema = `{
 	"type": "object",
@@ -58,10 +58,10 @@ schema: '%s'
 	return result, nil
 }
 
-func createContext() (context, error) {
+func createContext() (claudeContext, error) {
 	wd, err := os.Getwd()
 	if err != nil {
-		return context{}, fmt.Errorf("failed to get current working directory: %w", err)
+		return claudeContext{}, fmt.Errorf("failed to get current working directory: %w", err)
 	}
 
 	shell := os.Getenv("SHELL")
@@ -71,7 +71,7 @@ func createContext() (context, error) {
 	}
 
 	if shell == "" {
-		return context{}, fmt.Errorf("failed to get shell environment variable")
+		return claudeContext{}, fmt.Errorf("failed to get shell environment variable")
 	}
 
 	goos := runtime.GOOS
@@ -79,14 +79,14 @@ func createContext() (context, error) {
 	children := []string{}
 	dirEntries, err := os.ReadDir(wd)
 	if err != nil {
-		return context{}, fmt.Errorf("failed to walk directory: %w", err)
+		return claudeContext{}, fmt.Errorf("failed to walk directory: %w", err)
 	}
 
 	for _, entry := range dirEntries {
 		children = append(children, entry.Name())
 	}
 
-	return context{
+	return claudeContext{
 		Os:               goos,
 		Shell:            shell,
 		CurrentDirectory: wd,

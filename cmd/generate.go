@@ -126,7 +126,7 @@ var generateCmd = &cobra.Command{
 			if err != nil {
 				fmt.Println("Error executing command:", err)
 			} else {
-				fmt.Println("Command executed successfully.")
+				color.New(color.FgGreen).Println("Command executed successfully.")
 			}
 
 			fmt.Print("\nExecute another command? (y/n): ")

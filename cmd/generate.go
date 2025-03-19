@@ -1,9 +1,13 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -58,6 +62,78 @@ var generateCmd = &cobra.Command{
 				count := i + 1 + len(mainFlow)
 				fmt.Printf("  %d. %s\n", count, color.New(color.FgCyan).Sprint(cmd.Command))
 				fmt.Printf("     %s\n", color.New(color.FgYellow).Sprint(cmd.Reason))
+			}
+		}
+
+		for {
+			fmt.Print("\nEnter the number of the command you want to execute (or q to exit): ")
+
+			var input string
+			fmt.Scanln(&input)
+
+			if input == "q" {
+				os.Exit(0)
+			}
+
+			var index int
+			_, err := fmt.Sscanf(input, "%d", &index)
+			if err != nil || index < 1 || index > len(res.Commands) {
+				fmt.Println("Invalid command number")
+				continue
+			}
+
+			var selectedCmd internal.ClaudeCommand
+			if index <= len(mainFlow) {
+				selectedCmd = mainFlow[index-1]
+			} else {
+				selectedCmd = alternatives[index-len(mainFlow)-1]
+			}
+
+			fmt.Printf("\nYou selected: %s\n", color.New(color.FgCyan).Sprint(selectedCmd.Command))
+			fmt.Print("Edit the command (default: press enter to execute as is): ")
+
+			reader := bufio.NewReader(os.Stdin)
+			editedCmd, _ := reader.ReadString('\n')
+			editedCmd = strings.TrimSpace(editedCmd)
+
+			if editedCmd == "" {
+				editedCmd = selectedCmd.Command
+			}
+
+			var shell string
+			if runtime.GOOS == "windows" {
+				shell = "cmd"
+			} else {
+				shell = os.Getenv("SHELL")
+				if shell == "" {
+					shell = "/bin/sh"
+				}
+			}
+
+			fmt.Printf("Executing: %s\n", color.New(color.FgCyan).Sprint(editedCmd))
+
+			var cmdExec *exec.Cmd
+			if shell == "cmd" {
+				cmdExec = exec.Command(shell, "/C", editedCmd)
+			} else {
+				cmdExec = exec.Command(shell, "-c", editedCmd)
+			}
+
+			cmdExec.Stdout = os.Stdout
+			cmdExec.Stderr = os.Stderr
+
+			err = cmdExec.Run()
+			if err != nil {
+				fmt.Println("Error executing command:", err)
+			} else {
+				fmt.Println("Command executed successfully.")
+			}
+
+			fmt.Print("\nExecute another command? (y/n): ")
+			var again string
+			fmt.Scanln(&again)
+			if again != "y" {
+				break
 			}
 		}
 	},

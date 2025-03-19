@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+
+	_ "embed"
 )
 
 type claudeContext struct {
@@ -13,35 +15,13 @@ type claudeContext struct {
 	Children         []string
 }
 
+//go:embed schema.json
+var schema string
+
 func (c *claudeContext) toPrompt() (string, error) {
 	const prompt = `Respond with commands which are runnable according to the user request following the json schema in context block.
 
 FOLLOW THE SCHEMA IN CONTEXT BLOCK AND DO NOT ADD ANYTHING ELSE RETURN ONLY JSON. NO MARKUP OR ANYTHING ELSE. JUST JSON.`
-
-	const schema = `{
-	"type": "object",
-	"properties": {
-		"commands": {
-			"type": "array",
-			"items": {
-				"type": "object",
-				"properties": {
-					"command": {
-						"type": "string"
-					},
-					"isInteractive: {
-						"type": "boolean"
-					},
-					"reason": {
-						"type": "string"
-					}
-				},
-				"required": ["command", "reason"]
-			}
-		}
-	},
-	"required": ["commands"]
-}`
 
 	result := fmt.Sprintf(`---Context---
 OS: '%s'

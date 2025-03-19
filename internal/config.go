@@ -9,7 +9,7 @@ import (
 	"github.com/fatih/color"
 )
 
-type Config struct {
+type config struct {
 	ApiKey string `json:"apiKey"`
 }
 
@@ -23,8 +23,8 @@ func getConfigFilePath() (string, error) {
 	return configFilePath, nil
 }
 
-func LoadConfig() (Config, error) {
-	var cfg Config
+func LoadConfig() (config, error) {
+	var cfg config
 
 	configFilename, err := getConfigFilePath()
 	if err != nil {
@@ -48,8 +48,8 @@ func LoadConfig() (Config, error) {
 	return cfg, nil
 }
 
-func createConfig() (Config, error) {
-	var cfg Config
+func createConfig() (config, error) {
+	var cfg config
 
 	configFilename, err := getConfigFilePath()
 	if err != nil {

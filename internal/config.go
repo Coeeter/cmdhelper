@@ -86,6 +86,13 @@ func createConfig() (Config, error) {
 		return cfg, fmt.Errorf("failed to encode config file: %w", err)
 	}
 
+	fmt.Println()
+	fmt.Println(
+		color.New(color.FgGreen).Sprint("Success:"),
+		"Config file created",
+	)
+	fmt.Println()
+
 	return cfg, nil
 }
 

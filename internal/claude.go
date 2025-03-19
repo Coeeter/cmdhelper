@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	ctx "github.com/coeeter/cmdhelper/internal/context"
 	"github.com/liushuangls/go-anthropic/v2"
 )
 
@@ -13,12 +14,12 @@ func GenerateCommand(prompt string) (string, error) {
 		return "", fmt.Errorf("failed to load config: %w", err)
 	}
 
-	ctx, err := createContext()
+	ctx, err := ctx.CreateContext()
 	if err != nil {
 		return "", fmt.Errorf("failed to create context: %w", err)
 	}
 
-	systemPrompt, err := ctx.toPrompt()
+	systemPrompt, err := ctx.ToPrompt()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate prompt: %w", err)
 	}

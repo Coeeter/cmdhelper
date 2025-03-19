@@ -1,0 +1,4 @@
+Respond with commands which are runnable according to the user request following the json schema in context block.
+If the task requires more than one command make sure to put the commandIndex field to the correct order in which the commands must be run. If there is no order and is a normal one off command just put -1 for the commandIndex.
+
+FOLLOW THE SCHEMA IN CONTEXT BLOCK AND DO NOT ADD ANYTHING ELSE RETURN ONLY JSON. NO MARKUP OR ANYTHING ELSE. JUST JSON.

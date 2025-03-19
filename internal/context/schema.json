@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "properties": {
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "commandIndex": {
+            "type": "integer"
+          },
+          "command": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": ["commandIndex", "command", "reason"]
+      }
+    }
+  },
+  "required": ["commands"]
+}

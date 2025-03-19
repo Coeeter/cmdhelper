@@ -1,4 +1,4 @@
-package internal
+package context
 
 import (
 	"fmt"
@@ -15,14 +15,13 @@ type claudeContext struct {
 	Children         []string
 }
 
+//go:embed systemPrompt.txt
+var systemPrompt string
+
 //go:embed schema.json
 var schema string
 
-func (c *claudeContext) toPrompt() (string, error) {
-	const prompt = `Respond with commands which are runnable according to the user request following the json schema in context block.
-
-FOLLOW THE SCHEMA IN CONTEXT BLOCK AND DO NOT ADD ANYTHING ELSE RETURN ONLY JSON. NO MARKUP OR ANYTHING ELSE. JUST JSON.`
-
+func (c *claudeContext) ToPrompt() (string, error) {
 	result := fmt.Sprintf(`---Context---
 OS: '%s'
 Shell: '%s'
@@ -32,13 +31,13 @@ schema: '%s'
 ---Context---
 
 %s`,
-		c.Os, c.Shell, c.CurrentDirectory, c.Children, schema, prompt,
+		c.Os, c.Shell, c.CurrentDirectory, c.Children, schema, systemPrompt,
 	)
 
 	return result, nil
 }
 
-func createContext() (claudeContext, error) {
+func CreateContext() (claudeContext, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return claudeContext{}, fmt.Errorf("failed to get current working directory: %w", err)

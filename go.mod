@@ -3,8 +3,9 @@ module github.com/coeeter/cmdhelper
 go 1.24.1
 
 require (
-	github.com/spf13/cobra v1.9.1
 	github.com/fatih/color v1.18.0
+	github.com/spf13/cobra v1.9.1
+	github.com/liushuangls/go-anthropic/v2 v2.14.1
 )
 
 require (

@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/coeeter/cmdhelper/cmd/config"
+	"github.com/coeeter/cmdhelper/internal"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -23,9 +25,16 @@ func Execute() {
 }
 
 func init() {
+	_, err := internal.LoadConfig()
+	if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1)
+	}
+
 	initStyles()
 
 	rootCmd.AddCommand(generateCmd)
+	rootCmd.AddCommand(config.ConfigRootCommand)
 }
 
 func initStyles() {

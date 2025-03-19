@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -29,9 +30,35 @@ var generateCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Println(
-			color.New(color.FgGreen).Sprint("Generated command:"),
-			color.New(color.FgYellow).Sprint(res),
-		)
+		color.New(color.FgGreen).Println("Generated commands:")
+
+		var mainFlow []internal.ClaudeCommand
+		var alternatives []internal.ClaudeCommand
+
+		for _, cmd := range res.Commands {
+			if cmd.CommandIndex >= 0 {
+				mainFlow = append(mainFlow, cmd)
+			} else {
+				alternatives = append(alternatives, cmd)
+			}
+		}
+
+		sort.Slice(mainFlow, func(i, j int) bool {
+			return mainFlow[i].CommandIndex < mainFlow[j].CommandIndex
+		})
+
+		for i, cmd := range mainFlow {
+			fmt.Printf("  %d. %s\n", i+1, color.New(color.FgCyan).Sprint(cmd.Command))
+			fmt.Printf("     %s\n", color.New(color.FgYellow).Sprint(cmd.Reason))
+		}
+
+		if len(alternatives) > 0 {
+			color.New(color.FgMagenta).Println("\nAlternative commands:")
+			for i, cmd := range alternatives {
+				count := i + 1 + len(mainFlow)
+				fmt.Printf("  %d. %s\n", count, color.New(color.FgCyan).Sprint(cmd.Command))
+				fmt.Printf("     %s\n", color.New(color.FgYellow).Sprint(cmd.Reason))
+			}
+		}
 	},
 }

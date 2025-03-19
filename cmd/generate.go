@@ -65,28 +65,22 @@ var generateCmd = &cobra.Command{
 			}
 		}
 
+		var selectedCmdIndex int = -1
+
 		for {
-			fmt.Print("\nEnter the number of the command you want to execute (or q to exit): ")
-
-			var input string
-			fmt.Scanln(&input)
-
-			if input == "q" {
-				os.Exit(0)
-			}
-
-			var index int
-			_, err := fmt.Sscanf(input, "%d", &index)
-			if err != nil || index < 1 || index > len(res.Commands) {
-				fmt.Println("Invalid command number")
-				continue
+			if selectedCmdIndex == -1 {
+				selectedCmdIndex, err = getSelectedCommand(res.Commands)
+				if err != nil {
+					fmt.Println("Invalid command number")
+					continue
+				}
 			}
 
 			var selectedCmd internal.ClaudeCommand
-			if index <= len(mainFlow) {
-				selectedCmd = mainFlow[index-1]
+			if selectedCmdIndex <= len(mainFlow) {
+				selectedCmd = mainFlow[selectedCmdIndex-1]
 			} else {
-				selectedCmd = alternatives[index-len(mainFlow)-1]
+				selectedCmd = alternatives[selectedCmdIndex-len(mainFlow)-1]
 			}
 
 			fmt.Printf("\nYou selected: %s\n", color.New(color.FgCyan).Sprint(selectedCmd.Command))
@@ -100,41 +94,78 @@ var generateCmd = &cobra.Command{
 				editedCmd = selectedCmd.Command
 			}
 
-			var shell string
-			if runtime.GOOS == "windows" {
-				shell = "cmd"
-			} else {
-				shell = os.Getenv("SHELL")
-				if shell == "" {
-					shell = "/bin/sh"
-				}
-			}
-
 			fmt.Printf("Executing: %s\n", color.New(color.FgCyan).Sprint(editedCmd))
 
-			var cmdExec *exec.Cmd
-			if shell == "cmd" {
-				cmdExec = exec.Command(shell, "/C", editedCmd)
-			} else {
-				cmdExec = exec.Command(shell, "-c", editedCmd)
-			}
-
-			cmdExec.Stdout = os.Stdout
-			cmdExec.Stderr = os.Stderr
-
-			err = cmdExec.Run()
+			err = executeCommand(editedCmd)
+			selectedCmdIndex = -1
 			if err != nil {
 				fmt.Println("Error executing command:", err)
 			} else {
 				color.New(color.FgGreen).Println("Command executed successfully.")
 			}
 
-			fmt.Print("\nExecute another command? (y/n): ")
+			fmt.Print("\nExecute another command? (y/n or number of command): ")
 			var again string
 			fmt.Scanln(&again)
-			if again != "y" {
-				break
+			if again == "n" {
+				os.Exit(0)
 			}
+
+			if again == "y" {
+				continue
+			}
+
+			var nextIndex int
+			_, err = fmt.Sscanf(again, "%d", &nextIndex)
+			if err != nil || nextIndex < 1 || nextIndex > len(res.Commands) {
+				fmt.Println("Invalid command number")
+				continue
+			}
+
+			selectedCmdIndex = nextIndex
 		}
 	},
+}
+
+func getSelectedCommand(commands []internal.ClaudeCommand) (int, error) {
+	fmt.Print("\nEnter the number of the command you want to execute (or q to exit): ")
+
+	var input string
+	fmt.Scanln(&input)
+
+	if input == "q" {
+		os.Exit(0)
+	}
+
+	var selectedIndex int
+	_, err := fmt.Sscanf(input, "%d", &selectedIndex)
+	if err != nil || selectedIndex < 1 || selectedIndex > len(commands) {
+		return -1, fmt.Errorf("invalid command number")
+	}
+	return selectedIndex, nil
+}
+
+func executeCommand(cmd string) error {
+	var shell string
+	if runtime.GOOS == "windows" {
+		shell = "cmd"
+	} else {
+		shell = os.Getenv("SHELL")
+		if shell == "" {
+			shell = "/bin/sh"
+		}
+	}
+
+	var cmdExec *exec.Cmd
+	if shell == "cmd" {
+		cmdExec = exec.Command(shell, "/C", cmd)
+	} else {
+		cmdExec = exec.Command(shell, "-c", cmd)
+	}
+
+	cmdExec.Stdout = os.Stdout
+	cmdExec.Stderr = os.Stderr
+	cmdExec.Stdin = os.Stdin
+
+	return cmdExec.Run()
 }

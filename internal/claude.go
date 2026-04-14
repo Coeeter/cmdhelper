@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/anthropics/anthropic-sdk-go/option"
 	ctx "github.com/coeeter/cmdhelper/internal/context"
-	"github.com/liushuangls/go-anthropic/v2"
 )
 
 type ClaudeCommand struct {
@@ -38,21 +39,21 @@ func GenerateCommand(prompt string) (ClaudeResponse, error) {
 		return ClaudeResponse{}, fmt.Errorf("failed to generate prompt: %w", err)
 	}
 
-	client := anthropic.NewClient(cfg.ApiKey)
-	res, err := client.CreateMessages(context.Background(), anthropic.MessagesRequest{
-		System: systemPrompt,
-		Model:  anthropic.ModelClaude3Dot7SonnetLatest,
-		Messages: []anthropic.Message{
-			anthropic.NewUserTextMessage(prompt),
+	client := anthropic.NewClient(option.WithAPIKey(cfg.ApiKey))
+	res, err := client.Messages.New(context.Background(), anthropic.MessageNewParams{
+		System: []anthropic.TextBlockParam{{Text: systemPrompt}},
+		Model:  anthropic.ModelClaudeSonnet4_0,
+		Messages: []anthropic.MessageParam{
+			anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),
 		},
-		MaxTokens: 1000,
+		MaxTokens: 1024,
 	})
 
 	if err != nil {
 		return ClaudeResponse{}, fmt.Errorf("failed to generate command: %w", err)
 	}
 
-	responseText := res.Content[0].GetText()
+	responseText := res.Content[0].Text
 
 	if responseText == "" {
 		return ClaudeResponse{}, fmt.Errorf("response is empty")
